@@ -2,7 +2,10 @@ import { FastifyPluginAsync } from 'fastify'
 import { 
   createApplicationSchema, 
   updateApplicationSchema, 
-  applicationParamsSchema 
+  applicationParamsSchema,
+  CreateApplicationRequest,
+  UpdateApplicationRequest,
+  ApplicationParams
 } from '../schemas/application.js'
 import prisma from '../config/database.js'
 
@@ -26,8 +29,9 @@ const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
       }
     }
   }, async (request, reply) => {
+    const body = request.body as CreateApplicationRequest
     const application = await prisma.application.create({
-      data: request.body
+      data: body
     })
     
     reply.code(201).send(application)
@@ -95,7 +99,7 @@ const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
       }
     }
   }, async (request, reply) => {
-    const { id } = request.params
+    const { id } = request.params as ApplicationParams
     
     const application = await prisma.application.findUnique({
       where: { id },
@@ -118,12 +122,13 @@ const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
       body: updateApplicationSchema
     }
   }, async (request, reply) => {
-    const { id } = request.params
+    const { id } = request.params as ApplicationParams
+    const body = request.body as UpdateApplicationRequest
     
     try {
       const application = await prisma.application.update({
         where: { id },
-        data: request.body
+        data: body
       })
       
       reply.send(application)
@@ -138,7 +143,7 @@ const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
       params: applicationParamsSchema
     }
   }, async (request, reply) => {
-    const { id } = request.params
+    const { id } = request.params as ApplicationParams
     
     try {
       await prisma.application.delete({

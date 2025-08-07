@@ -10,7 +10,12 @@ import { initializeMinio } from './config/minio.js'
 const server = fastify({
   logger: {
     level: 'info',
-    prettyPrint: process.env.NODE_ENV === 'development'
+    transport: process.env.NODE_ENV === 'development' ? {
+      target: 'pino-pretty',
+      options: {
+        colorize: true
+      }
+    } : undefined
   }
 })
 

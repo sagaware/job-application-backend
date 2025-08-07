@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify'
-import { fileUploadSchema, fileParamsSchema } from '../schemas/file.js'
+import { fileUploadSchema, fileParamsSchema, FileParams } from '../schemas/file.js'
 import { uploadFile, getFileUrl, deleteFile } from '../services/fileService.js'
 import prisma from '../config/database.js'
 
@@ -25,7 +25,7 @@ const filesRoutes: FastifyPluginAsync = async (fastify) => {
     }
 
     const buffer = await data.toBuffer()
-    const applicationId = data.fields.applicationId?.value as string
+    const applicationId = (data.fields.applicationId as any)?.value as string
 
     if (!applicationId) {
       return reply.code(400).send({ error: 'Application ID is required' })
@@ -51,7 +51,7 @@ const filesRoutes: FastifyPluginAsync = async (fastify) => {
       params: fileParamsSchema
     }
   }, async (request, reply) => {
-    const { id } = request.params
+    const { id } = request.params as FileParams
 
     const file = await prisma.file.findUnique({
       where: { id }
@@ -75,7 +75,7 @@ const filesRoutes: FastifyPluginAsync = async (fastify) => {
       params: fileParamsSchema
     }
   }, async (request, reply) => {
-    const { id } = request.params
+    const { id } = request.params as FileParams
 
     try {
       await deleteFile(id)
@@ -91,7 +91,7 @@ const filesRoutes: FastifyPluginAsync = async (fastify) => {
       params: fileParamsSchema
     }
   }, async (request, reply) => {
-    const { id } = request.params
+    const { id } = request.params as FileParams
 
     const file = await prisma.file.findUnique({
       where: { id }

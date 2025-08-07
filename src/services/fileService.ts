@@ -11,7 +11,7 @@ export async function uploadFile(
   const fileId = randomUUID()
   const s3Key = `applications/${applicationId}/${fileId}-${filename}`
 
-  await minioClient.putObject(BUCKET_NAME, s3Key, file, {
+  await minioClient.putObject(BUCKET_NAME, s3Key, file, file.length, {
     'Content-Type': mimeType
   })
 
