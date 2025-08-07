@@ -5,19 +5,7 @@ import prisma from '../config/database.js'
 
 const filesRoutes: FastifyPluginAsync = async (fastify) => {
   // Upload file
-  fastify.post('/files/upload', {
-    schema: {
-      consumes: ['multipart/form-data'],
-      body: {
-        type: 'object',
-        properties: {
-          file: { isFileType: true },
-          applicationId: { type: 'string' }
-        },
-        required: ['file', 'applicationId']
-      }
-    }
-  }, async (request, reply) => {
+  fastify.post('/files/upload', async (request, reply) => {
     const data = await request.file()
     
     if (!data) {
