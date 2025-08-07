@@ -4,7 +4,7 @@ import { uploadFile, getFileUrl, deleteFile } from '../services/fileService.js'
 import prisma from '../config/database.js'
 
 const filesRoutes: FastifyPluginAsync = async (fastify) => {
-  // Upload file
+  // Upload file - ONLY SAFE ENDPOINT EXPOSED
   fastify.post('/files/upload', async (request, reply) => {
     const data = await request.file()
     
@@ -13,11 +13,7 @@ const filesRoutes: FastifyPluginAsync = async (fastify) => {
     }
 
     const buffer = await data.toBuffer()
-    const applicationId = (data.fields.applicationId as any)?.value as string
-
-    if (!applicationId) {
-      return reply.code(400).send({ error: 'Application ID is required' })
-    }
+    const applicationId = (data.fields.applicationId as any)?.value as string || null
 
     try {
       const file = await uploadFile(
@@ -31,83 +27,6 @@ const filesRoutes: FastifyPluginAsync = async (fastify) => {
     } catch (error) {
       reply.code(400).send({ error: 'Failed to upload file' })
     }
-  })
-
-  // Get file download URL
-  fastify.get('/files/:id/download', {
-    schema: {
-      params: {
-        type: 'object',
-        properties: {
-          id: { type: 'string' }
-        },
-        required: ['id']
-      }
-    }
-  }, async (request, reply) => {
-    const { id } = fileParamsSchema.parse(request.params)
-
-    const file = await prisma.file.findUnique({
-      where: { id }
-    })
-
-    if (!file) {
-      return reply.code(404).send({ error: 'File not found' })
-    }
-
-    try {
-      const downloadUrl = await getFileUrl(file.s3Key)
-      reply.send({ downloadUrl })
-    } catch (error) {
-      reply.code(500).send({ error: 'Failed to generate download URL' })
-    }
-  })
-
-  // Delete file
-  fastify.delete('/files/:id', {
-    schema: {
-      params: {
-        type: 'object',
-        properties: {
-          id: { type: 'string' }
-        },
-        required: ['id']
-      }
-    }
-  }, async (request, reply) => {
-    const { id } = fileParamsSchema.parse(request.params)
-
-    try {
-      await deleteFile(id)
-      reply.code(204).send()
-    } catch (error) {
-      reply.code(404).send({ error: 'File not found' })
-    }
-  })
-
-  // Get file metadata
-  fastify.get('/files/:id', {
-    schema: {
-      params: {
-        type: 'object',
-        properties: {
-          id: { type: 'string' }
-        },
-        required: ['id']
-      }
-    }
-  }, async (request, reply) => {
-    const { id } = fileParamsSchema.parse(request.params)
-
-    const file = await prisma.file.findUnique({
-      where: { id }
-    })
-
-    if (!file) {
-      return reply.code(404).send({ error: 'File not found' })
-    }
-
-    reply.send(file)
   })
 }
 

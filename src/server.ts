@@ -8,14 +8,16 @@ import filesRoutes from './routes/files.js'
 import { initializeMinio } from './config/minio.js'
 
 const server = fastify({
-  logger: {
+  logger: process.env.NODE_ENV === 'development' ? {
     level: 'info',
-    transport: process.env.NODE_ENV === 'development' ? {
+    transport: {
       target: 'pino-pretty',
       options: {
         colorize: true
       }
-    } : undefined
+    }
+  } : {
+    level: 'info'
   }
 })
 

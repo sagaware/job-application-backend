@@ -13,24 +13,37 @@ A TypeScript backend API for managing job applications with file uploads, built 
 
 ## API Endpoints
 
-### Applications
+⚠️ **Security Notice**: This API currently has minimal endpoints exposed for security reasons. Only essential functionality is available.
+
+### Available Endpoints
 - `POST /api/applications` - Create a new application
-- `GET /api/applications` - Get all applications
-- `GET /api/applications/:id` - Get application by ID
-- `PUT /api/applications/:id` - Update application
-- `DELETE /api/applications/:id` - Delete application
+- `POST /api/files/upload` - Upload file (applicationId optional)
 
-### Files
-- `POST /api/files/upload` - Upload file
-- `GET /api/files/:id` - Get file metadata
-- `GET /api/files/:id/download` - Get file download URL
-- `DELETE /api/files/:id` - Delete file
+### Workflow
+1. **Upload files first** (optional): `POST /api/files/upload` without applicationId
+2. **Create application**: `POST /api/applications` with application data
+3. **Upload more files** (optional): `POST /api/files/upload` with applicationId to link files
 
-### Documentation
-- `GET /docs` - Swagger UI documentation
+Files uploaded without an applicationId are stored in `uploads/unassigned/` and can be linked to applications later when authentication is implemented.
+
+### System Endpoints
 - `GET /health` - Health check endpoint
+- `GET /docs` - Swagger UI documentation
+
+### Disabled Endpoints (Security)
+The following endpoints are disabled until proper authentication is implemented:
+- ~~GET /api/applications~~ - List applications
+- ~~GET /api/applications/:id~~ - Get application details  
+- ~~PUT /api/applications/:id~~ - Update application
+- ~~DELETE /api/applications/:id~~ - Delete application
+- ~~GET /api/files/:id~~ - Get file metadata
+- ~~GET /api/files/:id/download~~ - Get file download URL
+- ~~DELETE /api/files/:id~~ - Delete file
+
 
 ## Setup
+
+### Development Setup
 
 1. Copy environment variables:
    ```bash
@@ -42,15 +55,27 @@ A TypeScript backend API for managing job applications with file uploads, built 
    pnpm install
    ```
 
-3. Set up database:
+3. Start local development services (PostgreSQL + MinIO):
    ```bash
-   pnpm db:push
+   docker-compose -f docker-compose.dev.yml up -d
    ```
 
-4. Start development server:
+4. Run database migrations:
+   ```bash
+   pnpm db:migrate
+   ```
+
+5. Start development server:
    ```bash
    pnpm dev
    ```
+
+### Production Deployment
+
+The `start` script automatically applies migrations on startup:
+```bash
+pnpm start  # Runs: prisma migrate deploy && node dist/server.js
+```
 
 The API will be available at http://localhost:3000 and documentation at http://localhost:3000/docs
 
