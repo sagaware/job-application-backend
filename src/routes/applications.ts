@@ -13,7 +13,15 @@ const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
   // Create application
   fastify.post('/applications', {
     schema: {
-      body: createApplicationSchema,
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          description: { type: 'string' },
+          data: { type: 'object' }
+        },
+        required: ['name']
+      },
       response: {
         201: {
           type: 'object',
@@ -29,7 +37,7 @@ const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
       }
     }
   }, async (request, reply) => {
-    const body = request.body as CreateApplicationRequest
+    const body = createApplicationSchema.parse(request.body)
     const application = await prisma.application.create({
       data: body
     })
@@ -70,7 +78,13 @@ const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
   // Get application by ID
   fastify.get('/applications/:id', {
     schema: {
-      params: applicationParamsSchema,
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' }
+        },
+        required: ['id']
+      },
       response: {
         200: {
           type: 'object',
@@ -99,7 +113,7 @@ const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
       }
     }
   }, async (request, reply) => {
-    const { id } = request.params as ApplicationParams
+    const { id } = applicationParamsSchema.parse(request.params)
     
     const application = await prisma.application.findUnique({
       where: { id },
@@ -118,12 +132,25 @@ const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
   // Update application
   fastify.put('/applications/:id', {
     schema: {
-      params: applicationParamsSchema,
-      body: updateApplicationSchema
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' }
+        },
+        required: ['id']
+      },
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          description: { type: 'string' },
+          data: { type: 'object' }
+        }
+      }
     }
   }, async (request, reply) => {
-    const { id } = request.params as ApplicationParams
-    const body = request.body as UpdateApplicationRequest
+    const { id } = applicationParamsSchema.parse(request.params)
+    const body = updateApplicationSchema.parse(request.body)
     
     try {
       const application = await prisma.application.update({
@@ -140,10 +167,16 @@ const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
   // Delete application
   fastify.delete('/applications/:id', {
     schema: {
-      params: applicationParamsSchema
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' }
+        },
+        required: ['id']
+      }
     }
   }, async (request, reply) => {
-    const { id } = request.params as ApplicationParams
+    const { id } = applicationParamsSchema.parse(request.params)
     
     try {
       await prisma.application.delete({

@@ -48,10 +48,16 @@ const filesRoutes: FastifyPluginAsync = async (fastify) => {
   // Get file download URL
   fastify.get('/files/:id/download', {
     schema: {
-      params: fileParamsSchema
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' }
+        },
+        required: ['id']
+      }
     }
   }, async (request, reply) => {
-    const { id } = request.params as FileParams
+    const { id } = fileParamsSchema.parse(request.params)
 
     const file = await prisma.file.findUnique({
       where: { id }
@@ -72,10 +78,16 @@ const filesRoutes: FastifyPluginAsync = async (fastify) => {
   // Delete file
   fastify.delete('/files/:id', {
     schema: {
-      params: fileParamsSchema
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' }
+        },
+        required: ['id']
+      }
     }
   }, async (request, reply) => {
-    const { id } = request.params as FileParams
+    const { id } = fileParamsSchema.parse(request.params)
 
     try {
       await deleteFile(id)
@@ -88,10 +100,16 @@ const filesRoutes: FastifyPluginAsync = async (fastify) => {
   // Get file metadata
   fastify.get('/files/:id', {
     schema: {
-      params: fileParamsSchema
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' }
+        },
+        required: ['id']
+      }
     }
   }, async (request, reply) => {
-    const { id } = request.params as FileParams
+    const { id } = fileParamsSchema.parse(request.params)
 
     const file = await prisma.file.findUnique({
       where: { id }
