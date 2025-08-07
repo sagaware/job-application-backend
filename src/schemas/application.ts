@@ -3,7 +3,8 @@ import { z } from 'zod'
 export const createApplicationSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
-  data: z.record(z.string(), z.any()).optional()
+  data: z.record(z.string(), z.any()).optional(),
+  fileIds: z.array(z.string().cuid()).optional()
 })
 
 export const updateApplicationSchema = z.object({

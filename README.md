@@ -21,10 +21,24 @@ A TypeScript backend API for managing job applications with file uploads, built 
 
 ### Workflow
 1. **Upload files first** (optional): `POST /api/files/upload` without applicationId
-2. **Create application**: `POST /api/applications` with application data
-3. **Upload more files** (optional): `POST /api/files/upload` with applicationId to link files
+   - Browser receives file `id` in response and tracks it
+2. **Create application**: `POST /api/applications` with application data + `fileIds` array
+   - Files are automatically linked to the new application
+3. **Upload more files** (optional): `POST /api/files/upload` with applicationId for direct linking
 
-Files uploaded without an applicationId are stored in `uploads/unassigned/` and can be linked to applications later when authentication is implemented.
+**Example:**
+```javascript
+// 1. Upload files and collect IDs
+const file1 = await uploadFile(resumeFile); // Returns {id: "file1_id", ...}
+const file2 = await uploadFile(coverLetter); // Returns {id: "file2_id", ...}
+
+// 2. Create application with file IDs
+const application = await createApplication({
+  name: "John Doe Application",
+  description: "Software Engineer Position", 
+  fileIds: [file1.id, file2.id] // Links files to application
+});
+```
 
 ### System Endpoints
 - `GET /health` - Health check endpoint

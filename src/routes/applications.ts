@@ -18,7 +18,11 @@ const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
         properties: {
           name: { type: 'string' },
           description: { type: 'string' },
-          data: { type: 'object' }
+          data: { type: 'object' },
+          fileIds: { 
+            type: 'array',
+            items: { type: 'string' }
+          }
         },
         required: ['name']
       },
@@ -38,9 +42,24 @@ const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
     }
   }, async (request, reply) => {
     const body = createApplicationSchema.parse(request.body)
+    const { fileIds, ...applicationData } = body
+    
     const application = await prisma.application.create({
-      data: body
+      data: applicationData
     })
+
+    // Link uploaded files to this application if fileIds provided
+    if (fileIds && fileIds.length > 0) {
+      await prisma.file.updateMany({
+        where: {
+          id: { in: fileIds },
+          applicationId: null // Only update unassigned files
+        },
+        data: {
+          applicationId: application.id
+        }
+      })
+    }
     
     reply.code(201).send(application)
   })
