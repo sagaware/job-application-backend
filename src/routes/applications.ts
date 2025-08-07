@@ -8,6 +8,7 @@ import {
   ApplicationParams
 } from '../schemas/application.js'
 import prisma from '../config/database.js'
+import { moveFileToApplication } from '../services/fileService.js'
 
 const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
   // Create application - ONLY SAFE ENDPOINT EXPOSED
@@ -48,17 +49,11 @@ const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
       data: applicationData
     })
 
-    // Link uploaded files to this application if fileIds provided
+    // Move uploaded files to this application if fileIds provided
     if (fileIds && fileIds.length > 0) {
-      await prisma.file.updateMany({
-        where: {
-          id: { in: fileIds },
-          applicationId: null // Only update unassigned files
-        },
-        data: {
-          applicationId: application.id
-        }
-      })
+      await Promise.all(
+        fileIds.map(fileId => moveFileToApplication(fileId, application.id))
+      )
     }
     
     reply.code(201).send(application)

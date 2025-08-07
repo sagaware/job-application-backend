@@ -21,10 +21,13 @@ A TypeScript backend API for managing job applications with file uploads, built 
 
 ### Workflow
 1. **Upload files first** (optional): `POST /api/files/upload` without applicationId
+   - Files stored in `uploads/unassigned/{fileId}-{filename}`
    - Browser receives file `id` in response and tracks it
 2. **Create application**: `POST /api/applications` with application data + `fileIds` array
-   - Files are automatically linked to the new application
+   - Files automatically moved from `uploads/unassigned/` to `applications/{applicationId}/`
+   - Database updated with applicationId link
 3. **Upload more files** (optional): `POST /api/files/upload` with applicationId for direct linking
+   - Files stored directly in `applications/{applicationId}/` folder
 
 **Example:**
 ```javascript
