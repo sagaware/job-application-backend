@@ -18,7 +18,8 @@ Configure these environment variables in your Coolify application:
 DATABASE_URL="postgresql://username:password@postgresql-host:5432/database_name"
 
 # MinIO S3-compatible storage
-MINIO_ENDPOINT="your-minio-endpoint"
+# IMPORTANT: Use hostname only, without https:// prefix
+MINIO_ENDPOINT="your-minio-endpoint.coolify.app"
 MINIO_PORT=443
 MINIO_USE_SSL=true
 MINIO_ACCESS_KEY="your-minio-access-key"

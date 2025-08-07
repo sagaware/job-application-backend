@@ -1,7 +1,12 @@
 import { Client } from 'minio'
 
+// Parse MinIO endpoint to remove protocol if present
+function parseMinioEndpoint(endpoint: string) {
+  return endpoint.replace(/^https?:\/\//, '')
+}
+
 const minioClient = new Client({
-  endPoint: process.env.MINIO_ENDPOINT || 'localhost',
+  endPoint: parseMinioEndpoint(process.env.MINIO_ENDPOINT || 'localhost'),
   port: Number(process.env.MINIO_PORT) || 9000,
   useSSL: process.env.MINIO_USE_SSL === 'true',
   accessKey: process.env.MINIO_ACCESS_KEY || 'minioadmin',
