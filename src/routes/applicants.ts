@@ -5,42 +5,8 @@ import { authenticateToken } from '../utils/middleware.js'
 const applicantsRoutes: FastifyPluginAsync = async (fastify) => {
   // Get all applicants - protected by JWT
   fastify.get('/applicants', {
-    preHandler: authenticateToken,
-    schema: {
-      response: {
-        200: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              name: { type: 'string' },
-              description: { type: 'string' },
-              data: { type: 'object' },
-              createdAt: { type: 'string' },
-              updatedAt: { type: 'string' },
-              files: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    id: { type: 'string' },
-                    filename: { type: 'string' },
-                    originalName: { type: 'string' },
-                    mimeType: { type: 'string' },
-                    size: { type: 'number' },
-                    s3Key: { type: 'string' },
-                    s3Bucket: { type: 'string' },
-                    createdAt: { type: 'string' },
-                    updatedAt: { type: 'string' }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+    preHandler: authenticateToken
+    // Temporarily removing schema validation to see if it's causing issues
   }, async (request, reply) => {
     try {
       const applications = await prisma.application.findMany({
@@ -86,6 +52,10 @@ const applicantsRoutes: FastifyPluginAsync = async (fastify) => {
           updatedAt: file.updatedAt.toISOString()
         }))
       }))
+
+      console.log('=== ABOUT TO SEND RESPONSE ===')
+      console.log('First serialized app data:', JSON.stringify(serializedApplications[0]?.data, null, 2))
+      console.log('Full first serialized app:', JSON.stringify(serializedApplications[0], null, 2))
 
       reply.send(serializedApplications)
     } catch (error) {
