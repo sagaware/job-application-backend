@@ -44,9 +44,24 @@ const applicationsRoutes: FastifyPluginAsync = async (fastify) => {
   }, async (request, reply) => {
     const body = createApplicationSchema.parse(request.body)
     const { fileIds, ...applicationData } = body
-    
+
+    // Debug: Log what data we're trying to save
+    fastify.log.info('Creating application with data:', {
+      applicationData,
+      dataField: applicationData.data,
+      dataType: typeof applicationData.data,
+      dataKeys: applicationData.data ? Object.keys(applicationData.data) : 'no data field'
+    })
+
     const application = await prisma.application.create({
       data: applicationData
+    })
+
+    // Debug: Log what was actually saved
+    fastify.log.info('Application created:', {
+      id: application.id,
+      savedData: application.data,
+      savedDataType: typeof application.data
     })
 
     // Move uploaded files to this application if fileIds provided

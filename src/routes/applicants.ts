@@ -53,40 +53,39 @@ const applicantsRoutes: FastifyPluginAsync = async (fastify) => {
       })
 
       // Debug: Log raw data from database
-      fastify.log.info('Raw application data from DB:', {
+      fastify.log.info('Raw application data from DB via Prisma:', {
         count: applications.length,
+        firstAppId: applications[0]?.id,
         firstAppData: applications[0]?.data,
         firstAppDataType: typeof applications[0]?.data,
-        firstAppDataKeys: applications[0]?.data ? Object.keys(applications[0].data) : 'no data',
-        firstAppDataStringified: typeof applications[0]?.data === 'string' ? 'YES - IT IS A STRING!' : 'No, it is not a string'
+        firstAppDataKeys: applications[0]?.data && typeof applications[0]?.data === 'object' ? Object.keys(applications[0].data) : 'no data or not object',
+        firstAppPersonalInfo: applications[0]?.data && typeof applications[0].data === 'object' && applications[0].data !== null && 'personalInfo' in applications[0].data ? 'HAS personalInfo' : 'NO personalInfo',
+        firstAppDataStringified: JSON.stringify(applications[0]?.data)
       })
 
-      // Ensure JSON data is properly parsed and serialized
-      const serializedApplications = applications.map(app => {
-        let parsedData = app.data;
+      // Let's also try a raw query to compare
+      if (applications.length > 0 && applications[0]) {
+        const rawResult = await prisma.$queryRaw`
+          SELECT id, name, data
+          FROM applications
+          WHERE id = ${applications[0].id}
+          LIMIT 1
+        ` as any[]
+        fastify.log.info('Raw query result for comparison:', rawResult)
+      }
 
-        // If data is a string, parse it back to object
-        if (typeof app.data === 'string' && app.data) {
-          try {
-            parsedData = JSON.parse(app.data);
-          } catch (e) {
-            fastify.log.error('Failed to parse JSON data:', app.data);
-            parsedData = {};
-          }
-        }
-
-        return {
-          ...app,
-          data: parsedData || {},
-          createdAt: app.createdAt.toISOString(),
-          updatedAt: app.updatedAt.toISOString(),
-          files: app.files.map(file => ({
-            ...file,
-            createdAt: file.createdAt.toISOString(),
-            updatedAt: file.updatedAt.toISOString()
-          }))
-        }
-      })
+      // With jsonb, data should already be proper objects
+      const serializedApplications = applications.map(app => ({
+        ...app,
+        data: app.data || {},
+        createdAt: app.createdAt.toISOString(),
+        updatedAt: app.updatedAt.toISOString(),
+        files: app.files.map(file => ({
+          ...file,
+          createdAt: file.createdAt.toISOString(),
+          updatedAt: file.updatedAt.toISOString()
+        }))
+      }))
 
       reply.send(serializedApplications)
     } catch (error) {
@@ -159,22 +158,10 @@ const applicantsRoutes: FastifyPluginAsync = async (fastify) => {
         return
       }
 
-      // Ensure JSON data is properly parsed and serialized
-      let parsedData = application.data;
-
-      // If data is a string, parse it back to object
-      if (typeof application.data === 'string' && application.data) {
-        try {
-          parsedData = JSON.parse(application.data);
-        } catch (e) {
-          fastify.log.error('Failed to parse JSON data for single app:', application.data);
-          parsedData = {};
-        }
-      }
-
+      // With jsonb, data should already be proper objects
       const serializedApplication = {
         ...application,
-        data: parsedData || {},
+        data: application.data || {},
         createdAt: application.createdAt.toISOString(),
         updatedAt: application.updatedAt.toISOString(),
         files: application.files.map(file => ({
