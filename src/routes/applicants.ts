@@ -52,7 +52,43 @@ const applicantsRoutes: FastifyPluginAsync = async (fastify) => {
         }
       })
 
-      reply.send(applications)
+      // Debug: Log raw data from database
+      fastify.log.info('Raw application data from DB:', {
+        count: applications.length,
+        firstAppData: applications[0]?.data,
+        firstAppDataType: typeof applications[0]?.data,
+        firstAppDataKeys: applications[0]?.data ? Object.keys(applications[0].data) : 'no data',
+        firstAppDataStringified: typeof applications[0]?.data === 'string' ? 'YES - IT IS A STRING!' : 'No, it is not a string'
+      })
+
+      // Ensure JSON data is properly parsed and serialized
+      const serializedApplications = applications.map(app => {
+        let parsedData = app.data;
+
+        // If data is a string, parse it back to object
+        if (typeof app.data === 'string' && app.data) {
+          try {
+            parsedData = JSON.parse(app.data);
+          } catch (e) {
+            fastify.log.error('Failed to parse JSON data:', app.data);
+            parsedData = {};
+          }
+        }
+
+        return {
+          ...app,
+          data: parsedData || {},
+          createdAt: app.createdAt.toISOString(),
+          updatedAt: app.updatedAt.toISOString(),
+          files: app.files.map(file => ({
+            ...file,
+            createdAt: file.createdAt.toISOString(),
+            updatedAt: file.updatedAt.toISOString()
+          }))
+        }
+      })
+
+      reply.send(serializedApplications)
     } catch (error) {
       fastify.log.error(error)
       reply.code(500).send({ error: 'Failed to fetch applicants' })
@@ -123,7 +159,32 @@ const applicantsRoutes: FastifyPluginAsync = async (fastify) => {
         return
       }
 
-      reply.send(application)
+      // Ensure JSON data is properly parsed and serialized
+      let parsedData = application.data;
+
+      // If data is a string, parse it back to object
+      if (typeof application.data === 'string' && application.data) {
+        try {
+          parsedData = JSON.parse(application.data);
+        } catch (e) {
+          fastify.log.error('Failed to parse JSON data for single app:', application.data);
+          parsedData = {};
+        }
+      }
+
+      const serializedApplication = {
+        ...application,
+        data: parsedData || {},
+        createdAt: application.createdAt.toISOString(),
+        updatedAt: application.updatedAt.toISOString(),
+        files: application.files.map(file => ({
+          ...file,
+          createdAt: file.createdAt.toISOString(),
+          updatedAt: file.updatedAt.toISOString()
+        }))
+      }
+
+      reply.send(serializedApplication)
     } catch (error) {
       fastify.log.error(error)
       reply.code(500).send({ error: 'Failed to fetch applicant' })
