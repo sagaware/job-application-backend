@@ -18,27 +18,6 @@ const applicantsRoutes: FastifyPluginAsync = async (fastify) => {
         }
       })
 
-      // Debug: Log raw data from database
-      console.log('=== PRISMA DEBUG START ===')
-      console.log('Applications count:', applications.length)
-      if (applications.length > 0 && applications[0]) {
-        const firstApp = applications[0]
-        console.log('First app ID:', firstApp.id)
-        console.log('First app name:', firstApp.name)
-        console.log('First app data:', firstApp.data)
-        console.log('First app data type:', typeof firstApp.data)
-        console.log('First app data stringified:', JSON.stringify(firstApp.data, null, 2))
-
-        // Raw query comparison
-        const rawResult = await prisma.$queryRaw`
-          SELECT id, name, data
-          FROM applications
-          WHERE id = ${firstApp.id}
-          LIMIT 1
-        ` as any[]
-        console.log('Raw query result:', JSON.stringify(rawResult, null, 2))
-      }
-      console.log('=== PRISMA DEBUG END ===')
 
       // With jsonb, data should already be proper objects
       const serializedApplications = applications.map(app => ({
@@ -53,9 +32,6 @@ const applicantsRoutes: FastifyPluginAsync = async (fastify) => {
         }))
       }))
 
-      console.log('=== ABOUT TO SEND RESPONSE ===')
-      console.log('First serialized app data:', JSON.stringify(serializedApplications[0]?.data, null, 2))
-      console.log('Full first serialized app:', JSON.stringify(serializedApplications[0], null, 2))
 
       reply.send(serializedApplications)
     } catch (error) {

@@ -14,18 +14,56 @@ const filesRoutes: FastifyPluginAsync = async (fastify) => {
 
     const buffer = await data.toBuffer()
     const applicationId = (data.fields.applicationId as any)?.value as string || null
+    const fileType = (data.fields.fileType as any)?.value as string || undefined
 
     try {
       const file = await uploadFile(
         buffer,
         data.filename,
         data.mimetype,
-        applicationId
+        applicationId,
+        fileType
       )
 
       reply.code(201).send(file)
     } catch (error) {
       reply.code(400).send({ error: 'Failed to upload file' })
+    }
+  })
+
+  // Public file view - no authentication required (for Slack links)
+  fastify.get('/files/:id/view', {
+    schema: {
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' }
+        },
+        required: ['id']
+      }
+    }
+  }, async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string }
+
+      // Get file metadata from database
+      const file = await prisma.file.findUnique({
+        where: { id }
+      })
+
+      if (!file) {
+        reply.code(404).send({ error: 'File not found' })
+        return
+      }
+
+      // Generate presigned URL for viewing
+      const viewUrl = await getFileUrl(file.s3Key)
+
+      // Redirect to the presigned URL for direct file access
+      reply.redirect(viewUrl)
+    } catch (error) {
+      fastify.log.error(error)
+      reply.code(500).send({ error: 'Failed to access file' })
     }
   })
 

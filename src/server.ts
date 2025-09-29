@@ -30,7 +30,11 @@ server.register(cors, {
   allowedHeaders: ['Content-Type', 'Authorization']
 })
 
-server.register(multipart)
+server.register(multipart, {
+  limits: {
+    fileSize: 25 * 1024 * 1024, // 25MB limit
+  }
+})
 
 server.register(swagger, {
   swagger: {
