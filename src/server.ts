@@ -5,6 +5,8 @@ import swaggerUi from '@fastify/swagger-ui'
 import multipart from '@fastify/multipart'
 import applicationsRoutes from './routes/applications.js'
 import filesRoutes from './routes/files.js'
+import authRoutes from './routes/auth.js'
+import applicantsRoutes from './routes/applicants.js'
 import { initializeMinio } from './config/minio.js'
 
 const server = fastify({
@@ -53,8 +55,8 @@ server.register(swaggerUi, {
     deepLinking: false
   },
   uiHooks: {
-    onRequest: function (request, reply, next) { next() },
-    preHandler: function (request, reply, next) { next() }
+    onRequest: function (_request, _reply, next) { next() },
+    preHandler: function (_request, _reply, next) { next() }
   },
   staticCSP: true,
   transformStaticCSP: (header) => header
@@ -63,9 +65,11 @@ server.register(swaggerUi, {
 // Register routes
 server.register(applicationsRoutes, { prefix: '/api' })
 server.register(filesRoutes, { prefix: '/api' })
+server.register(authRoutes, { prefix: '/api' })
+server.register(applicantsRoutes, { prefix: '/api' })
 
 // Health check
-server.get('/health', async (request, reply) => {
+server.get('/health', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() }
 })
 
