@@ -53,26 +53,26 @@ const applicantsRoutes: FastifyPluginAsync = async (fastify) => {
       })
 
       // Debug: Log raw data from database
-      fastify.log.info('Raw application data from DB via Prisma:', {
-        count: applications.length,
-        firstAppId: applications[0]?.id,
-        firstAppData: applications[0]?.data,
-        firstAppDataType: typeof applications[0]?.data,
-        firstAppDataKeys: applications[0]?.data && typeof applications[0]?.data === 'object' ? Object.keys(applications[0].data) : 'no data or not object',
-        firstAppPersonalInfo: applications[0]?.data && typeof applications[0].data === 'object' && applications[0].data !== null && 'personalInfo' in applications[0].data ? 'HAS personalInfo' : 'NO personalInfo',
-        firstAppDataStringified: JSON.stringify(applications[0]?.data)
-      })
-
-      // Let's also try a raw query to compare
+      console.log('=== PRISMA DEBUG START ===')
+      console.log('Applications count:', applications.length)
       if (applications.length > 0 && applications[0]) {
+        const firstApp = applications[0]
+        console.log('First app ID:', firstApp.id)
+        console.log('First app name:', firstApp.name)
+        console.log('First app data:', firstApp.data)
+        console.log('First app data type:', typeof firstApp.data)
+        console.log('First app data stringified:', JSON.stringify(firstApp.data, null, 2))
+
+        // Raw query comparison
         const rawResult = await prisma.$queryRaw`
           SELECT id, name, data
           FROM applications
-          WHERE id = ${applications[0].id}
+          WHERE id = ${firstApp.id}
           LIMIT 1
         ` as any[]
-        fastify.log.info('Raw query result for comparison:', rawResult)
+        console.log('Raw query result:', JSON.stringify(rawResult, null, 2))
       }
+      console.log('=== PRISMA DEBUG END ===')
 
       // With jsonb, data should already be proper objects
       const serializedApplications = applications.map(app => ({
