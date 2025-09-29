@@ -25,7 +25,9 @@ const server = fastify({
 
 // Register plugins
 server.register(cors, {
-  origin: true
+  origin: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 })
 
 server.register(multipart)
